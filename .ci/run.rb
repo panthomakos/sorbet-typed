@@ -1,13 +1,20 @@
 #!/usr/bin/env ruby
 
-# Exclude files if necessary here.
-exclude = []
+gems = Dir.glob("lib/*")
 
-file_paths = Dir.glob("**/*.rb{i,}").select{|p| !exclude.include?(p)}.map{|p| "\"#{p}\""}.join(' ')
+results =
+  gems.flat_map do |dir|
+    versions = Dir.glob(dir + '/*').map { |f| File.basename(f) }
 
-srb_cmd = 'tc'
 
-srb_flags = '--error-black-list 5002'
+    versions.map do |version|
+      next if version == "test"
+      puts "testing #{dir} #{version}"
+      dirs = ["#{dir}/#{version}"]
+      dirs << "#{dir}/all" if versions.include?('all')
+      dirs = dirs.uniq.map { |d| "\"#{d}\"" }.join(' ')
+      system("srb tc --error-black-list 5002 #{dirs}")
+    end
+  end
 
-# `exec` is used so the status code surfaces to CI
-exec("srb #{srb_cmd} #{srb_flags} #{file_paths}")
+exit results.compact.all?

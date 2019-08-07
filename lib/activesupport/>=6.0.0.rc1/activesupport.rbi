@@ -1,6 +1,9 @@
 # typed: strong
 
 class Array
+  sig { params(a: String).void }
+  def foo(a); end
+
   sig { params(elements: T.untyped).returns(T::Array[T.untyped]) }
   def excluding(*elements); end
 
